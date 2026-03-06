@@ -26,7 +26,8 @@ body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--
   display:flex;align-items:center;justify-content:center;
   min-height:100vh;padding:20px;
   background:linear-gradient(135deg,#0f1523 0%,#1a2e5a 50%,#0f1523 100%);
-  position:relative;overflow:hidden;
+  position:fixed;inset:0;overflow:hidden;
+  z-index:9999;
 }
 #auth-screen::before{
   content:'';position:absolute;inset:0;
@@ -36,7 +37,7 @@ body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--
 .auth-card{
   background:rgba(30,39,64,0.95);border:1px solid rgba(200,160,48,0.2);
   border-radius:16px;padding:44px 40px;width:100%;max-width:420px;
-  backdrop-filter:blur(20px);position:relative;z-index:1;
+  backdrop-filter:blur(20px);position:relative;z-index:10000;
   box-shadow:0 40px 80px rgba(0,0,0,0.5);
 }
 .auth-logo{text-align:center;margin-bottom:32px;}
