@@ -1240,34 +1240,26 @@ function updateDevis(){
   el('dp_objet').textContent=el('dev_objet')?.value||'—';
   el('dp_notes').textContent=el('dev_notes')?.value||'—';
   el('dp_co_name').textContent=s.nom||'Mon Entreprise';
-  let det=s.activite||'';
-  if(s.adresse) det+='
-'+s.adresse;
-  if(s.tel) det+='
-Tél : '+s.tel;
-  if(s.email) det+='
-Email : '+s.email;
-  if(s.rc) det+='
-RC/ICE : '+s.rc;
-  el('dp_co_det').innerHTML=det.replace(/
-/g,'<br>')||'—';
+  let det=[s.activite,s.adresse,s.tel?'Tel : '+s.tel:'',s.email?'Email : '+s.email:'',s.rc?'RC/ICE : '+s.rc:''].filter(Boolean).join('\n');
+  el('dp_co_det').innerHTML=det.replace(/\n/g,'<br>')||'—';
   let fl=s.nom||'Mon Entreprise';
   if(s.tel) fl+=' • '+s.tel;
   el('dp_footer_line').textContent=fl;
-  el('dp_footer_sl').textContent='« '+(s.slogan||'Chaque détail compte')+' »';
+  el('dp_footer_sl').textContent='« '+(s.slogan||'Chaque detail compte')+' »';
   let ch='';
   const nom=el('dev_cli_nom')?.value, adr=el('dev_cli_adr')?.value, tel=el('dev_cli_tel')?.value, email=el('dev_cli_email')?.value;
-  if(nom) ch+=`<strong>${nom}</strong><br>`;
-  if(adr) ch+=`${adr}<br>`;
-  if(tel) ch+=`Tél : ${tel}<br>`;
+  if(nom) ch+='<strong>'+nom+'</strong><br>';
+  if(adr) ch+=adr+'<br>';
+  if(tel) ch+='Tel : '+tel+'<br>';
   if(email) ch+=email;
   el('dp_client').innerHTML=ch||'—';
   const tbody=el('dp_items'); tbody.innerHTML='';
   let ht=0;
-  devisItems.forEach((it,i)=>{
+  devisItems.forEach(function(it,i){
     const tot=it.qty*it.pu; ht+=tot;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="c">${i+1}</td><td>${it.desc||''}</td><td class="c">${it.qty}</td><td class="r">${it.pu?fmtDoc(it.pu,'dev_devise'):''}</td><td class="r">${tot?fmtDoc(tot,'dev_devise'):''}</td>`;
+    tr.innerHTML='<td class="c">'+(i+1)+'</td><td>'+it.desc+'</td><td class="c">'+it.qty+'</td><td class="r">'+(it.pu?fmtDoc(it.pu,'dev_devise'):'')+
+    '</td><td class="r">'+(tot?fmtDoc(tot,'dev_devise'):'')+' </td>';
     tbody.appendChild(tr);
   });
   const tvap=parseFloat(el('dev_tva')?.value)||0;
@@ -1278,11 +1270,9 @@ RC/ICE : '+s.rc;
   el('dp_tvav').textContent=fmtDoc(tvav,'dev_devise');
   el('dp_rem').textContent=fmtDoc(rem,'dev_devise');
   el('dp_ttc').textContent=fmtDoc(ttc,'dev_devise');
-  // logo
   const logo=el('dev_logo_img');
   if(logo && s.logoUrl) logo.src=s.logoUrl;
 }
-
 function updateCommande(){
   const s=userSettings;
   const el=id=>document.getElementById(id);
@@ -1295,34 +1285,26 @@ function updateCommande(){
   el('bp_delai').textContent=el('bc_delai')?.value||'—';
   el('bp_notes').textContent=el('bc_notes')?.value||'—';
   el('bp_co_name').textContent=s.nom||'Mon Entreprise';
-  let det=s.activite||'';
-  if(s.adresse) det+='
-'+s.adresse;
-  if(s.tel) det+='
-Tél : '+s.tel;
-  if(s.email) det+='
-Email : '+s.email;
-  if(s.rc) det+='
-RC/ICE : '+s.rc;
-  el('bp_co_det').innerHTML=det.replace(/
-/g,'<br>')||'—';
+  let det=[s.activite,s.adresse,s.tel?'Tel : '+s.tel:'',s.email?'Email : '+s.email:'',s.rc?'RC/ICE : '+s.rc:''].filter(Boolean).join('\n');
+  el('bp_co_det').innerHTML=det.replace(/\n/g,'<br>')||'—';
   let fl=s.nom||'Mon Entreprise';
   if(s.tel) fl+=' • '+s.tel;
   el('bp_footer_line').textContent=fl;
-  el('bp_footer_sl').textContent='« '+(s.slogan||'Chaque détail compte')+' »';
+  el('bp_footer_sl').textContent='« '+(s.slogan||'Chaque detail compte')+' »';
   let ch='';
   const nom=el('bc_cli_nom')?.value, adr=el('bc_cli_adr')?.value, tel=el('bc_cli_tel')?.value, email=el('bc_cli_email')?.value;
-  if(nom) ch+=`<strong>${nom}</strong><br>`;
-  if(adr) ch+=`${adr}<br>`;
-  if(tel) ch+=`Tél : ${tel}<br>`;
+  if(nom) ch+='<strong>'+nom+'</strong><br>';
+  if(adr) ch+=adr+'<br>';
+  if(tel) ch+='Tel : '+tel+'<br>';
   if(email) ch+=email;
   el('bp_client').innerHTML=ch||'—';
   const tbody=el('bp_items'); tbody.innerHTML='';
   let ht=0;
-  commandeItems.forEach((it,i)=>{
+  commandeItems.forEach(function(it,i){
     const tot=it.qty*it.pu; ht+=tot;
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="c">${i+1}</td><td>${it.desc||''}</td><td class="c">${it.qty}</td><td class="r">${it.pu?fmtDoc(it.pu,'bc_devise'):''}</td><td class="r">${tot?fmtDoc(tot,'bc_devise'):''}</td>`;
+    tr.innerHTML='<td class="c">'+(i+1)+'</td><td>'+it.desc+'</td><td class="c">'+it.qty+'</td><td class="r">'+(it.pu?fmtDoc(it.pu,'bc_devise'):'')+
+    '</td><td class="r">'+(tot?fmtDoc(tot,'bc_devise'):'')+' </td>';
     tbody.appendChild(tr);
   });
   const tvap=parseFloat(el('bc_tva')?.value)||0;
@@ -1336,7 +1318,6 @@ RC/ICE : '+s.rc;
   const logo=el('bc_logo_img');
   if(logo && s.logoUrl) logo.src=s.logoUrl;
 }
-
 // ══ SAVE DEVIS ══
 async function saveDevis(){
   try {
