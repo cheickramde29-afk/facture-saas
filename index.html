@@ -819,33 +819,37 @@ function update(){
 
 // ══ SAVE ══
 async function saveAndGenerate(){
-  if(!currentUser){showToast('⚠ Connectez-vous d\'abord');return;}
-  const num=document.getElementById('inv_num').value;
-  const dv=document.getElementById('inv_date').value;
-  if(!num||!dv){showToast('⚠ Numéro et date requis');return;}
-  const dev=document.getElementById('devise').value;
-  const tvap=parseFloat(document.getElementById('tva').value)||0;
-  const rem=parseFloat(document.getElementById('remise').value)||0;
-  let ht=0; items.forEach(it=>ht+=it.qty*it.pu);
-  const ttc=ht+ht*tvap/100-rem;
-  const inv={
-    num, date:dv, devise:dev,
-    client:document.getElementById('cli_nom').value||'—',
-    objet:document.getElementById('objet').value||'—',
-    ht, ttc, tva:tvap, remise:rem,
-    statut:document.getElementById('statut').value,
-    items:JSON.parse(JSON.stringify(items)),
-    createdAt:Date.now()
-  };
-  // Check duplicate
-  const dup=invoices.find(x=>x.num===num);
-  if(dup){ inv.firebaseKey=dup.firebaseKey; }
-  await saveInvoiceToFirebase(inv);
-  // Auto-increment
-  const p=num.match(/^(\D*)(\d+)(.*)$/);
-  if(p){ const n=String(parseInt(p[2])+1).padStart(p[2].length,'0'); document.getElementById('inv_num').value=p[1]+n+p[3]; }
-  showToast('✅ Facture enregistrée sur Firebase !');
-  setTimeout(()=>window.print(),400);
+  try {
+    if(!currentUser){showToast("⚠ Non connecté — rechargez la page");return;}
+    const num=document.getElementById("inv_num").value;
+    const dv=document.getElementById("inv_date").value;
+    if(!num||!dv){showToast("⚠ Numéro et date requis");return;}
+    const dev=document.getElementById("devise").value;
+    const tvap=parseFloat(document.getElementById("tva").value)||0;
+    const rem=parseFloat(document.getElementById("remise").value)||0;
+    let ht=0; items.forEach(it=>ht+=it.qty*it.pu);
+    const ttc=ht+ht*tvap/100-rem;
+    const inv={
+      num, date:dv, devise:dev,
+      client:document.getElementById("cli_nom").value||"—",
+      objet:document.getElementById("objet").value||"—",
+      ht, ttc, tva:tvap, remise:rem,
+      statut:document.getElementById("statut").value,
+      items:JSON.parse(JSON.stringify(items)),
+      createdAt:Date.now()
+    };
+    const dup=invoices.find(x=>x.num===num);
+    if(dup){ inv.firebaseKey=dup.firebaseKey; }
+    showToast("⏳ Enregistrement en cours...");
+    await saveInvoiceToFirebase(inv);
+    const p=num.match(/^(D*)(d+)(.*)$/);
+    if(p){ const n=String(parseInt(p[2])+1).padStart(p[2].length,"0"); document.getElementById("inv_num").value=p[1]+n+p[3]; }
+    showToast("✅ Enregistrée ! Impression...");
+    setTimeout(()=>window.print(),600);
+  } catch(e) {
+    showToast("❌ Erreur : "+e.message);
+    console.error("Erreur saveAndGenerate:", e);
+  }
 }
 function justPrint(){window.print();}
 
