@@ -73,7 +73,7 @@ body{font-family:'Barlow Condensed',sans-serif;background:var(--bg);color:var(--
 /* USER BADGE */
 .user-badge{margin-top:auto;width:42px;height:42px;border-radius:50%;background:var(--gold);color:var(--navy);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;cursor:pointer;position:relative;}
 .user-menu{position:absolute;bottom:0;left:56px;background:#1e2740;border:1px solid var(--border);border-radius:8px;padding:8px;min-width:180px;display:none;z-index:99;}
-.user-badge:hover .user-menu{display:block;}
+.user-badge .user-menu.open{display:block;}
 .user-menu-email{font-size:11px;color:var(--muted);padding:6px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;}
 .user-menu-btn{width:100%;background:none;border:none;color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:1px;padding:7px 10px;text-align:left;cursor:pointer;border-radius:4px;}
 .user-menu-btn:hover{background:rgba(231,76,60,0.1);}
@@ -290,8 +290,8 @@ textarea{resize:vertical;min-height:50px;}
   <button class="nav-btn" id="nb-dashboard" onclick="showPage('dashboard',this)">📊<span class="tip">Tableau de Bord</span></button>
   <div class="nav-sep"></div>
   <button class="nav-btn" id="nb-settings" onclick="showPage('settings',this)">⚙️<span class="tip">Paramètres</span></button>
-  <div class="user-badge" id="user_badge" style="margin-top:auto">?
-    <div class="user-menu">
+  <div class="user-badge" id="user_badge" style="margin-top:auto" onclick="toggleUserMenu(event)">?
+    <div class="user-menu" id="user_menu">
       <div class="user-menu-email" id="user_email_display">—</div>
       <div style="font-size:10px;color:var(--muted);padding:4px 10px;"><span class="sync-dot" id="sync_dot"></span><span id="sync_txt">Synchronisé</span></div>
       <button class="user-menu-btn" onclick="doLogout()">🚪 Déconnexion</button>
@@ -551,18 +551,24 @@ let saveTimeout = null;
 
 // ══ AUTH ══
 auth.onAuthStateChanged(user => {
-  if(user){
-    currentUser = user;
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'block';
-    document.getElementById('user_email_display').textContent = user.email;
-    document.getElementById('user_badge').textContent = user.email[0].toUpperCase();
-    loadUserData();
-  } else {
-    currentUser = null;
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'none';
-  }
+  try {
+    const authScreen = document.getElementById('auth-screen');
+    const appScreen = document.getElementById('app-screen');
+    if(user){
+      currentUser = user;
+      if(authScreen) authScreen.style.display = 'none';
+      if(appScreen) appScreen.style.display = 'block';
+      const badge = document.getElementById('user_badge');
+      const emailDisplay = document.getElementById('user_email_display');
+      if(emailDisplay) emailDisplay.textContent = user.email;
+      if(badge) badge.textContent = user.email[0].toUpperCase();
+      loadUserData();
+    } else {
+      currentUser = null;
+      if(authScreen) authScreen.style.display = 'flex';
+      if(appScreen) appScreen.style.display = 'none';
+    }
+  } catch(e) { console.error('Auth state error:', e); }
 });
 
 function switchTab(tab){
@@ -597,6 +603,15 @@ async function doRegister(){
   }catch(e){ setAuthErr(translateFirebaseError(e.code)); }
 }
 
+function toggleUserMenu(e){
+  e.stopPropagation();
+  const menu=document.getElementById('user_menu');
+  if(menu) menu.classList.toggle('open');
+}
+document.addEventListener('click',()=>{
+  const menu=document.getElementById('user_menu');
+  if(menu) menu.classList.remove('open');
+});
 async function doLogout(){
   await auth.signOut();
 }
@@ -737,8 +752,8 @@ function uploadLogo(input){
 function showPage(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+name).classList.add('active');
-  document.getElementById('nb-'+name).classList.add('active');
+  const pg=document.getElementById('page-'+name); if(pg) pg.classList.add('active');
+  const nb=document.getElementById('nb-'+name); if(nb) nb.classList.add('active');
   if(name==='dashboard') renderDash();
 }
 
@@ -903,8 +918,8 @@ function renderDash(){
   const tot=paid.length+pend.length||1;
   const pp=paid.length/tot;
   const circ=2*Math.PI*50;
-  document.getElementById('donut_paid').setAttribute('stroke-dasharray',`${circ*pp} ${circ*(1-pp)}`);
-  document.getElementById('donut_pend').setAttribute('stroke-dasharray',`${circ*(1-pp)} ${circ*pp}`);
+  const dp=document.getElementById('donut_paid'); if(dp) dp.setAttribute('stroke-dasharray',`${circ*pp} ${circ*(1-pp)}`);
+  const dpend=document.getElementById('donut_pend'); if(dpend) dpend.setAttribute('stroke-dasharray',`${circ*(1-pp)} ${circ*pp}`);
   document.getElementById('donut_pend').setAttribute('stroke-dashoffset',78.5-circ*pp);
   document.getElementById('donut_pct').textContent=Math.round(pp*100)+'%';
   document.getElementById('leg_paid').textContent=`Payées : ${paid.length}`;
@@ -948,7 +963,7 @@ async function delInv(key){
 }
 
 // ══ TOAST ══
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function showToast(msg){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 
 // ══ INIT ══
 document.getElementById('inv_date').value=new Date().toISOString().split('T')[0];
