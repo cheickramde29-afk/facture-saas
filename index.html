@@ -652,6 +652,7 @@ function syncSave(){
 function setSyncing(s){
   const dot=document.getElementById('sync_dot');
   const txt=document.getElementById('sync_txt');
+  if(!dot||!txt) return;
   if(s){ dot.className='sync-dot syncing'; txt.textContent='Synchronisation...'; }
   else { dot.className='sync-dot'; txt.textContent='Synchronisé ✓'; }
 }
