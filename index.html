@@ -979,16 +979,8 @@ function fmtShort(n,dev){
 
 // ══ ITEMS ══
 let items=[{desc:'',qty:1,pu:0},{desc:'',qty:1,pu:0}];
-function addItem(){items.push({desc:'',qty:1,pu:0});renderItemsForm();
-renderDevisItemsForm();
-renderCommandeItemsForm();
-document.getElementById('dev_date').value=new Date().toISOString().split('T')[0];
-document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];}
-function removeItem(i){if(items.length>1){items.splice(i,1);renderItemsForm();
-renderDevisItemsForm();
-renderCommandeItemsForm();
-document.getElementById('dev_date').value=new Date().toISOString().split('T')[0];
-document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];}}
+function addItem(){items.push({desc:'',qty:1,pu:0});renderItemsForm();}
+function removeItem(i){if(items.length>1){items.splice(i,1);renderItemsForm();}}
 function renderItemsForm(){
   const c=document.getElementById('items_wrap'); c.innerHTML='';
   items.forEach((it,i)=>{
@@ -1188,10 +1180,6 @@ document.getElementById('inv_date').value=new Date().toISOString().split('T')[0]
   if(el) el.addEventListener('input',update);
 });
 renderItemsForm();
-renderDevisItemsForm();
-renderCommandeItemsForm();
-document.getElementById('dev_date').value=new Date().toISOString().split('T')[0];
-document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];
 
 // ══ DEVIS ITEMS ══
 let devisItems=[{desc:'',qty:1,pu:0},{desc:'',qty:1,pu:0}];
@@ -1453,6 +1441,11 @@ document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];
   showToast('✅ Bon de commande converti en Facture !');
 }
 
+// ══ INIT DEVIS & COMMANDE ══
+renderDevisItemsForm();
+renderCommandeItemsForm();
+document.getElementById('dev_date').value=new Date().toISOString().split('T')[0];
+document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];
 </script>
 </body>
 </html>
