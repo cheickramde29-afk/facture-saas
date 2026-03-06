@@ -256,16 +256,18 @@ textarea{resize:vertical;min-height:50px;}
       <div class="auth-logo-title">FacturePro</div>
       <div class="auth-logo-sub">Gestion de Factures</div>
     </div>
-    <div class="auth-tabs">
-      <button class="auth-tab active" onclick="switchTab('login')">Connexion</button>
-      <button class="auth-tab" onclick="switchTab('register')">Inscription</button>
+
+    <!-- MODE SELECTOR -->
+    <div class="auth-tabs" id="auth-tabs">
+      <button class="auth-tab active" id="tab-btn-login">Connexion</button>
+      <button class="auth-tab" id="tab-btn-register">Inscription</button>
     </div>
 
     <!-- LOGIN -->
     <div id="tab-login">
       <div class="auth-field"><label>EMAIL</label><input id="login_email" type="text" placeholder="votre@email.com"></div>
       <div class="auth-field"><label>MOT DE PASSE</label><input id="login_pass" type="password" placeholder="••••••••"></div>
-      <button class="auth-btn" onclick="doLogin()">SE CONNECTER</button>
+      <button class="auth-btn" id="btn-login">SE CONNECTER</button>
     </div>
 
     <!-- REGISTER -->
@@ -273,7 +275,7 @@ textarea{resize:vertical;min-height:50px;}
       <div class="auth-field"><label>NOM DE L'ENTREPRISE</label><input id="reg_company" type="text" placeholder="NOMA BTP"></div>
       <div class="auth-field"><label>EMAIL</label><input id="reg_email" type="text" placeholder="votre@email.com"></div>
       <div class="auth-field"><label>MOT DE PASSE</label><input id="reg_pass" type="password" placeholder="Min. 6 caractères"></div>
-      <button class="auth-btn" onclick="doRegister()">CRÉER MON COMPTE</button>
+      <button class="auth-btn" id="btn-register">CRÉER MON COMPTE</button>
     </div>
 
     <div class="auth-err" id="auth_err"></div>
@@ -781,7 +783,8 @@ auth.onAuthStateChanged(user => {
 });
 
 function switchTab(tab){
-  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('tab-btn-login').classList.toggle('active', tab==='login');
+  document.getElementById('tab-btn-register').classList.toggle('active', tab==='register');
   document.getElementById('tab-login').style.display = tab==='login'?'block':'none';
   document.getElementById('tab-register').style.display = tab==='register'?'block':'none';
   document.getElementById('auth_err').textContent='';
@@ -791,6 +794,7 @@ async function doLogin(){
   const email=document.getElementById('login_email').value.trim();
   const pass=document.getElementById('login_pass').value;
   if(!email||!pass){setAuthErr('Remplissez tous les champs');return;}
+  setAuthErr('Connexion...');
   try{
     await auth.signInWithEmailAndPassword(email,pass);
   }catch(e){ setAuthErr(translateFirebaseError(e.code)); }
@@ -802,10 +806,10 @@ async function doRegister(){
   const pass=document.getElementById('reg_pass').value;
   if(!company||!email||!pass){setAuthErr('Remplissez tous les champs');return;}
   if(pass.length<6){setAuthErr('Mot de passe : minimum 6 caractères');return;}
+  setAuthErr('Création du compte...');
   try{
     const cred=await auth.createUserWithEmailAndPassword(email,pass);
-    // Save initial settings
-    await db.ref(`users/${cred.user.uid}/settings`).set({
+    await db.ref('users/'+cred.user.uid+'/settings').set({
       nom:company, activite:'', tel:'', email:'', adresse:'', rc:'',
       slogan:'Chaque détail compte', devise:'DH', tva:20, logoUrl:''
     });
@@ -1441,6 +1445,12 @@ document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];
   showPage('facture', document.getElementById('nb-facture'));
   showToast('✅ Bon de commande converti en Facture !');
 }
+
+// ══ AUTH EVENT LISTENERS ══
+document.getElementById('tab-btn-login').addEventListener('click', function(){ switchTab('login'); });
+document.getElementById('tab-btn-register').addEventListener('click', function(){ switchTab('register'); });
+document.getElementById('btn-login').addEventListener('click', function(){ doLogin(); });
+document.getElementById('btn-register').addEventListener('click', function(){ doRegister(); });
 
 // ══ INIT DEVIS & COMMANDE ══
 renderDevisItemsForm();
