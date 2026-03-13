@@ -2346,4 +2346,22 @@ function installPWA(){
 }
 
 </script>
+
+<!-- ══ EMAIL MODAL ══ -->
+<div id="email-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#1e2740;border:1px solid rgba(200,160,48,0.3);border-radius:16px;padding:32px;width:420px;max-width:90vw;">
+    <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;margin-bottom:20px;">
+      📧 Envoyer par <span style="color:var(--gold)">Email</span>
+    </div>
+    <label style="font-size:11px;color:#8892aa;letter-spacing:1px;display:block;margin-bottom:4px;">EMAIL DU CLIENT *</label>
+    <input id="email_to" type="email" placeholder="client@email.com" style="width:100%;background:#141929;border:1px solid rgba(200,160,48,0.25);border-radius:6px;padding:10px 12px;color:white;font-family:inherit;font-size:13px;margin-bottom:14px;outline:none;">
+    <label style="font-size:11px;color:#8892aa;letter-spacing:1px;display:block;margin-bottom:4px;">MESSAGE PERSONNALISÉ (optionnel)</label>
+    <textarea id="email_msg" placeholder="Message pour le client..." rows="3" style="width:100%;background:#141929;border:1px solid rgba(200,160,48,0.25);border-radius:6px;padding:10px 12px;color:white;font-family:inherit;font-size:13px;margin-bottom:16px;resize:vertical;outline:none;"></textarea>
+    <div style="display:flex;gap:10px;">
+      <button id="email-send-btn" onclick="sendEmail()" style="flex:1;background:var(--gold);color:var(--navy);border:none;border-radius:6px;padding:12px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;">📤 Envoyer</button>
+      <button onclick="closeEmailModal()" style="flex:1;background:transparent;color:#8892aa;border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:12px;font-family:inherit;font-size:13px;cursor:pointer;">Annuler</button>
+    </div>
+  </div>
+</div>
+
 </body>
