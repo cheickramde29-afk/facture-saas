@@ -18,6 +18,9 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
 
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 <!-- html2pdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -966,6 +969,11 @@ const auth = firebase.auth();
 const db = firebase.database();
 
 // ══ STATE ══
+// EmailJS config
+const EMAILJS_SERVICE = 'service_zlp5a7y';
+const EMAILJS_TEMPLATE = 'template_2jxgt67';
+const EMAILJS_KEY = 'IofN0URsKB2mW1fhu';
+
 let currentUser = null;
 let currentFormat = 1;
 let userSettings = {
@@ -2136,6 +2144,97 @@ function exportPDF(type){
   });
 }
 
+// ══ EMAIL ══
+let emailDocType = 'facture';
+
+function openEmailModal(type){
+  emailDocType = type;
+  // Pre-fill client email if available
+  let clientEmail = '';
+  if(type==='facture') clientEmail = document.getElementById('cli_email')?.value || '';
+  else if(type==='devis') clientEmail = document.getElementById('dev_cli_email')?.value || '';
+  else if(type==='commande') clientEmail = document.getElementById('bc_cli_email')?.value || '';
+  document.getElementById('email_to').value = clientEmail;
+  document.getElementById('email_msg').value = '';
+  const modal = document.getElementById('email-modal');
+  modal.style.display = 'flex';
+}
+
+function closeEmailModal(){
+  document.getElementById('email-modal').style.display = 'none';
+}
+
+async function sendEmail(){
+  const to = document.getElementById('email_to').value.trim();
+  if(!to || !to.includes('@')){ showToast('⚠ Email invalide'); return; }
+
+  // Get doc info based on type
+  let docNum, docDate, montant, clientName, docTypeLabel;
+  const s = userSettings;
+
+  if(emailDocType==='facture'){
+    docNum = document.getElementById('inv_num')?.value || '—';
+    docDate = document.getElementById('inv_date')?.value || '—';
+    clientName = document.getElementById('cli_nom')?.value || 'Client';
+    docTypeLabel = t('doc_facture') || 'FACTURE';
+    const dev = document.getElementById('devise')?.value || 'DH';
+    const ht = items.reduce((a,i)=>a+i.qty*i.pu, 0);
+    const tva = parseFloat(document.getElementById('tva')?.value)||0;
+    const rem = parseFloat(document.getElementById('remise')?.value)||0;
+    montant = (ht + ht*tva/100 - rem).toLocaleString('fr-FR',{minimumFractionDigits:2}) + ' ' + dev;
+  } else if(emailDocType==='devis'){
+    docNum = document.getElementById('dev_num')?.value || '—';
+    docDate = document.getElementById('dev_date')?.value || '—';
+    clientName = document.getElementById('dev_cli_nom')?.value || 'Client';
+    docTypeLabel = t('doc_devis') || 'DEVIS';
+    const dev = document.getElementById('dev_devise')?.value || 'DH';
+    const ht = devItems.reduce((a,i)=>a+i.qty*i.pu, 0);
+    const tva = parseFloat(document.getElementById('dev_tva')?.value)||0;
+    const rem = parseFloat(document.getElementById('dev_remise')?.value)||0;
+    montant = (ht + ht*tva/100 - rem).toLocaleString('fr-FR',{minimumFractionDigits:2}) + ' ' + dev;
+  } else {
+    docNum = document.getElementById('bc_num')?.value || '—';
+    docDate = document.getElementById('bc_date')?.value || '—';
+    clientName = document.getElementById('bc_cli_nom')?.value || 'Client';
+    docTypeLabel = t('doc_commande') || 'BON DE COMMANDE';
+    const dev = document.getElementById('bc_devise')?.value || 'DH';
+    const ht = bcItems.reduce((a,i)=>a+i.qty*i.pu, 0);
+    const tva = parseFloat(document.getElementById('bc_tva')?.value)||0;
+    const rem = parseFloat(document.getElementById('bc_remise')?.value)||0;
+    montant = (ht + ht*tva/100 - rem).toLocaleString('fr-FR',{minimumFractionDigits:2}) + ' ' + dev;
+  }
+
+  const msgTxt = document.getElementById('email_msg').value.trim() ||
+    'Nous vous prions de bien vouloir trouver ci-joint votre document. Contactez-nous pour toute question.';
+
+  const btn = document.getElementById('email-send-btn');
+  btn.textContent = '⏳ Envoi en cours...';
+  btn.disabled = true;
+
+  try {
+    emailjs.init(EMAILJS_KEY);
+    await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+      to_email: to,
+      client_name: clientName,
+      doc_type: docTypeLabel,
+      doc_num: docNum,
+      doc_date: docDate ? new Date(docDate).toLocaleDateString('fr-FR') : '—',
+      montant: montant,
+      message: msgTxt,
+      company_name: s.nom || 'Mon Entreprise',
+      company_tel: s.tel || '',
+      company_email: s.email || ''
+    });
+    closeEmailModal();
+    showToast('✅ Email envoyé à ' + to + ' !');
+  } catch(e){
+    showToast('❌ Erreur envoi : ' + (e.text || e.message || 'Vérifiez votre connexion'));
+  } finally {
+    btn.textContent = '📤 Envoyer';
+    btn.disabled = false;
+  }
+}
+
 // ══ MONTANT EN LETTRES ══
 function montantEnLettres(n, devise) {
   if(!n || n===0) return '';
@@ -2194,6 +2293,11 @@ renderDevisItemsForm();
 renderCommandeItemsForm();
 document.getElementById('dev_date').value=new Date().toISOString().split('T')[0];
 document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];
+// Close email modal on outside click
+document.getElementById('email-modal').addEventListener('click', function(e){
+  if(e.target === this) closeEmailModal();
+});
+
 // ══ PWA SERVICE WORKER ══
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
@@ -2230,4 +2334,3 @@ function installPWA(){
 
 </script>
 </body>
-</html>
