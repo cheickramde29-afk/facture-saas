@@ -2,6 +2,9 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FacturePro – Gestion de Factures</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
@@ -424,6 +427,7 @@ textarea{resize:vertical;min-height:50px;}
           <tr class="inv-tot-final"><td>TOTAL TTC</td><td id="p_ttc">0</td></tr>
         </table>
       </div>
+      <div style="border:1px solid #ccc;padding:8px 12px;margin-bottom:14px;font-size:10px;font-style:italic;color:#333;background:#fafafa;border-radius:2px;" id="p_montant_lettres"></div>
       <div class="inv-sigs">
         <div class="inv-sig"><div class="inv-sig-lbl">Signature du Client</div><div class="inv-sig-sp"></div></div>
         <div class="inv-sig"><div class="inv-sig-lbl">Cachet &amp; Signature</div><div class="inv-sig-sp"></div></div>
@@ -502,6 +506,9 @@ textarea{resize:vertical;min-height:50px;}
             <tr style="background:#1565c0;color:white;"><td style="padding:6px 8px;font-weight:700;font-size:12px;">TOTAL TTC</td><td style="padding:6px 8px;text-align:right;font-weight:700;font-size:12px;" id="inv2_ttc">0</td></tr>
           </table>
         </div>
+
+        <!-- MONTANT EN LETTRES F2 -->
+        <div style="border:1px solid #ccc;padding:8px 12px;margin-bottom:14px;font-size:10px;font-style:italic;color:#333;background:#fafafa;border-radius:2px;" id="inv2_montant_lettres"></div>
 
         <!-- SIGNATURES -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:18px;">
@@ -617,6 +624,7 @@ textarea{resize:vertical;min-height:50px;}
           <tr class="inv-tot-final" style="background:#1a6e3a"><td>TOTAL TTC</td><td id="dp_ttc">0</td></tr>
         </table>
       </div>
+      <div style="border:1px solid #ccc;padding:8px 12px;margin-bottom:14px;font-size:10px;font-style:italic;color:#333;background:#fafafa;border-radius:2px;" id="dp_montant_lettres"></div>
       <div class="inv-sigs">
         <div class="inv-sig" style="border-color:#2ecc71"><div class="inv-sig-lbl">Signature & Acceptation Client</div><div class="inv-sig-sp"></div><div style="font-size:9px;color:#999">Bon pour accord — Date : ___/___/______</div></div>
         <div class="inv-sig" style="border-color:#2ecc71"><div class="inv-sig-lbl">Cachet &amp; Signature</div><div class="inv-sig-sp"></div></div>
@@ -721,6 +729,7 @@ textarea{resize:vertical;min-height:50px;}
           <tr class="inv-tot-final"><td>TOTAL TTC</td><td id="bp_ttc">0</td></tr>
         </table>
       </div>
+      <div style="border:1px solid #ccc;padding:8px 12px;margin-bottom:14px;font-size:10px;font-style:italic;color:#333;background:#fafafa;border-radius:2px;" id="bp_montant_lettres"></div>
       <div class="inv-sigs">
         <div class="inv-sig" style="border-color:#e67e22"><div class="inv-sig-lbl">Signature Client (Bon pour accord)</div><div class="inv-sig-sp"></div></div>
         <div class="inv-sig" style="border-color:#e67e22"><div class="inv-sig-lbl">Cachet &amp; Signature</div><div class="inv-sig-sp"></div></div>
@@ -939,6 +948,7 @@ const db = firebase.database();
 
 // ══ STATE ══
 let currentUser = null;
+let currentFormat = 1;
 let userSettings = {
   nom:'', activite:'', tel:'', email:'', adresse:'', rc:'',
   slogan:'Chaque détail compte', devise:'DH', tva:20, logoUrl:''
@@ -1233,6 +1243,8 @@ function update(){
   document.getElementById('p_tvav').textContent=fmt(tvav);
   document.getElementById('p_rem').textContent=fmt(rem);
   document.getElementById('p_ttc').textContent=fmt(ttc);
+  const ml = document.getElementById('p_montant_lettres');
+  if(ml) ml.textContent = montantEnLettres(ttc, document.getElementById('devise').value);
   if(currentFormat===2) updateFormat2();
 }
 
@@ -1460,6 +1472,8 @@ function updateDevis(){
   el('dp_tvav').textContent=fmtDoc(tvav,'dev_devise');
   el('dp_rem').textContent=fmtDoc(rem,'dev_devise');
   el('dp_ttc').textContent=fmtDoc(ttc,'dev_devise');
+  const mld = el('dp_montant_lettres');
+  if(mld) mld.textContent = montantEnLettres(ttc, document.getElementById('dev_devise')?.value||'DH');
   const logo=el('dev_logo_img');
   if(logo && s.logoUrl) logo.src=s.logoUrl;
 }
@@ -1505,6 +1519,8 @@ function updateCommande(){
   el('bp_tvav').textContent=fmtDoc(tvav,'bc_devise');
   el('bp_rem').textContent=fmtDoc(rem,'bc_devise');
   el('bp_ttc').textContent=fmtDoc(ttc,'bc_devise');
+  const mlb = el('bp_montant_lettres');
+  if(mlb) mlb.textContent = montantEnLettres(ttc, document.getElementById('bc_devise')?.value||'DH');
   const logo=el('bc_logo_img');
   if(logo && s.logoUrl) logo.src=s.logoUrl;
 }
@@ -1857,7 +1873,6 @@ function useProduitInFacture(key){
 }
 
 // ══ FORMAT SELECTOR ══
-let currentFormat = 1;
 
 function setFormat(n){
   currentFormat = n;
@@ -1946,6 +1961,8 @@ function updateFormat2(){
   el('inv2_tvav').textContent = fmtV(tvav);
   el('inv2_rem').textContent = fmtV(rem);
   el('inv2_ttc').textContent = fmtV(ttc);
+  const ml2 = el('inv2_montant_lettres');
+  if(ml2) ml2.textContent = montantEnLettres(ttc, dev);
 
   // Bank info footer
   const rccm = el('inv_rccm') ? el('inv_rccm').value : '';
@@ -1956,6 +1973,57 @@ function updateFormat2(){
   el('inv2_email_line').textContent = emailFact ? 'Email : '+emailFact : '';
   el('inv2_banque_line').textContent = banque ? 'Banque : '+banque : '';
   el('inv2_rib_line').textContent = rib ? 'RIB : '+rib : '';
+}
+
+// ══ MONTANT EN LETTRES ══
+function montantEnLettres(n, devise) {
+  if(!n || n===0) return '';
+  const units = ['','UN','DEUX','TROIS','QUATRE','CINQ','SIX','SEPT','HUIT','NEUF',
+    'DIX','ONZE','DOUZE','TREIZE','QUATORZE','QUINZE','SEIZE','DIX-SEPT','DIX-HUIT','DIX-NEUF'];
+  const tens = ['','DIX','VINGT','TRENTE','QUARANTE','CINQUANTE','SOIXANTE','SOIXANTE','QUATRE-VINGT','QUATRE-VINGT'];
+
+  function belowHundred(n) {
+    if(n < 20) return units[n];
+    const t = Math.floor(n/10), u = n%10;
+    if(t===7) return 'SOIXANTE-'+(u===1?'ET-ONZE': u===0?'DIX': u<10?units[10+u]:units[10+u]);
+    if(t===8) return u===0?'QUATRE-VINGTS': 'QUATRE-VINGT-'+units[u];
+    if(t===9) return 'QUATRE-VINGT-'+units[10+u];
+    if(u===0) return tens[t]+(t===8?'S':'');
+    if(u===1 && t!==8) return tens[t]+'-ET-UN';
+    return tens[t]+'-'+units[u];
+  }
+
+  function belowThousand(n) {
+    if(n < 100) return belowHundred(n);
+    const h = Math.floor(n/100), r = n%100;
+    const prefix = h===1 ? 'CENT' : units[h]+' CENT';
+    if(r===0) return prefix+(h>1?'S':'');
+    return prefix+' '+belowHundred(r);
+  }
+
+  function convert(n) {
+    if(n===0) return 'ZÉRO';
+    let result = '';
+    const millions = Math.floor(n/1000000);
+    const thousands = Math.floor((n%1000000)/1000);
+    const remainder = n%1000;
+    if(millions>0) {
+      result += (millions===1?'UN MILLION':belowThousand(millions)+' MILLIONS')+' ';
+    }
+    if(thousands>0) {
+      result += (thousands===1?'MILLE':belowThousand(thousands)+' MILLE')+' ';
+    }
+    if(remainder>0) {
+      result += belowThousand(remainder);
+    }
+    return result.trim();
+  }
+
+  const entier = Math.floor(n);
+  const cents = Math.round((n - entier)*100);
+  let txt = convert(entier);
+  if(cents > 0) txt += ' VIRGULE ' + convert(cents) + ' CENTIMES';
+  return 'Arrêté la présente facture à la somme de : ' + txt + ' (' + Math.round(n).toLocaleString('fr-FR') + ') ' + (devise||'') + ' HORS TAXE.';
 }
 
 // ══ INIT DEVIS & COMMANDE ══
