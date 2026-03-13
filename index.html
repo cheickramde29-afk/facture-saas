@@ -19,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
 
 <!-- EmailJS -->
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
 <!-- html2pdf -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -977,7 +977,7 @@ const db = firebase.database();
 // EmailJS config
 const EMAILJS_SERVICE = 'service_zlp5a7y';
 const EMAILJS_TEMPLATE = 'template_2jxgt67';
-const EMAILJS_KEY = 'IofN0URsKB2mW1fhu';
+const EMAILJS_KEY = 'lofN0URsKB2mW1fhu';
 
 let currentUser = null;
 let currentFormat = 1;
@@ -1679,7 +1679,7 @@ document.getElementById('fmt1-btn').addEventListener('click', function(){ setFor
 document.getElementById('fmt2-btn').addEventListener('click', function(){ setFormat(2); });
 
 // ══ EMAILJS INIT ══
-emailjs.init(EMAILJS_KEY);
+emailjs.init({publicKey: EMAILJS_KEY});
 
 // ══ AUTH EVENT LISTENERS ══
 document.getElementById('tab-btn-login').addEventListener('click', function(){ switchTab('login'); });
@@ -2309,9 +2309,8 @@ renderCommandeItemsForm();
 document.getElementById('dev_date').value=new Date().toISOString().split('T')[0];
 document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];
 // Close email modal on outside click
-document.getElementById('email-modal').addEventListener('click', function(e){
-  if(e.target === this) closeEmailModal();
-});
+const _em = document.getElementById('email-modal');
+if(_em) _em.addEventListener('click', function(e){ if(e.target===this) closeEmailModal(); });
 
 // ══ PWA SERVICE WORKER ══
 if('serviceWorker' in navigator){
