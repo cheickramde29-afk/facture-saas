@@ -1678,6 +1678,9 @@ document.getElementById('bc_date').value=new Date().toISOString().split('T')[0];
 document.getElementById('fmt1-btn').addEventListener('click', function(){ setFormat(1); });
 document.getElementById('fmt2-btn').addEventListener('click', function(){ setFormat(2); });
 
+// ══ EMAILJS INIT ══
+emailjs.init(EMAILJS_KEY);
+
 // ══ AUTH EVENT LISTENERS ══
 document.getElementById('tab-btn-login').addEventListener('click', function(){ switchTab('login'); });
 document.getElementById('tab-btn-register').addEventListener('click', function(){ switchTab('register'); });
@@ -2225,7 +2228,6 @@ async function sendEmail(){
   btn.disabled = true;
 
   try {
-    emailjs.init(EMAILJS_KEY);
     await emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
       to_email: to,
       client_name: clientName,
